@@ -14,6 +14,8 @@ function createPlayer (playerNum) {
 }
 
 function createGame (player1, player2, gameboard) { 
+    let finished = false;
+
     function checkForWin () {
         const winningCombos = {
             'row 1': [1, 2, 3],
@@ -34,31 +36,57 @@ function createGame (player1, player2, gameboard) {
         }
 
         return {'gameWon': false, 'winningCombo': undefined, 'winningSymbol': undefined};
-
     };
 
     function newTurn(player) {
-        // get players choice
+        while (true) {
+            const square = prompt('Choose a square between 1 & 9');
+            if (checkSquareOccupied(square) === false) {
+                gameboard[square] = player.symbol;
+                break;
+            } else {
+                alert('That square is already occupied, try another.');
+                continue;
+            };
+        };
+
         const result = checkForWin();
         if (result.gameWon === true) {
             player.increaseWins();
         }
     }
+
+    function checkSquareOccupied (square) {
+        return (['x', 'o'].includes(gameboard[square])) ? true : false; 
+    }
+
+    return finished;
 }
 
-function initialise() {
+function startGame() {
     const player1 = createPlayer(1);
     const player2 = createPlayer(2);
     const gameboard = (function () {
         const arr = ['dummy value', 
-            null, null, null,
-            null, null, null,
-            null, null, null
+            'topL', 'topM', 'topR',
+            'midL', 'midM', 'midR',
+            'botL', 'botM', 'botR'
         ];
         return arr;
     })();
 
-    return {player1, player2, gameboard};
-}
+    const game = createGame(player1, player2, gameboard);
 
-initialise();
+    while (game.finished === false) {
+        let currentPlayer = player2;
+        if (currentPlayer === player1) {
+            currentPlayer = player2;
+        } else if (currentPlayer === player2) {
+            currentPlayer = player1;
+        };
+
+        game.newTurn(currentPlayer);
+    }
+};
+
+startGame();
