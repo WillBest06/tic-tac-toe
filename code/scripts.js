@@ -10,12 +10,13 @@ function createPlayer (playerNum) {
         wins++;
     };
 
-    return name, symbol, wins;
+    return {name, symbol, wins};
 }
 
-function createGame (player1, player2, gameboard) { 
-    let finished = false;
-
+function createGame (player1, player2, gameboard, startingPlayer) {
+    let currentPlayer = startingPlayer;
+    let isGameFinished = false;
+    let turnNum = 1;
     function checkForWin () {
         const winningCombos = {
             'row 1': [1, 2, 3],
@@ -38,11 +39,12 @@ function createGame (player1, player2, gameboard) {
         return {'gameWon': false, 'winningCombo': undefined, 'winningSymbol': undefined};
     };
 
-    function newTurn(player) {
+    function newTurn() {
         while (true) {
             const square = prompt('Choose a square between 1 & 9');
-            if (checkSquareOccupied(square) === false) {
-                gameboard[square] = player.symbol;
+            if (['x', 'o'].includes(gameboard[square]) === false) {
+                gameboard[square] = currentPlayer.symbol;
+                displayGameboard();
                 break;
             } else {
                 alert('That square is already occupied, try another.');
@@ -51,17 +53,37 @@ function createGame (player1, player2, gameboard) {
         };
 
         const result = checkForWin();
+        
         if (result.gameWon === true) {
-            player.increaseWins();
-        }
+            currentPlayer.increaseWins();
+            isGameFinished = true;
+            console.log(`Winner: ${result.winningSymbol}`);
+        };
+
+        swapCurrentPlayer();
+        turnNum++;
+    };
+
+    function swapCurrentPlayer () {
+        if (currentPlayer === player1) {
+            currentPlayer = player2;
+        } else if (currentPlayer === player2) {
+            currentPlayer = player1;
+        };
+    };
+
+    function displayGameboard () {
+        console.log(gameboard.slice(1, 4));
+        console.log(gameboard.slice(4, 7));
+        console.log(gameboard.slice(7));
     }
 
-    function checkSquareOccupied (square) {
-        return (['x', 'o'].includes(gameboard[square])) ? true : false; 
+    function getTurnNum () {
+        return turnNum;
     }
 
-    return finished;
-}
+    return {newTurn, finished: isGameFinished, getTurnNum};
+};
 
 function startGame() {
     const player1 = createPlayer(1);
@@ -75,18 +97,14 @@ function startGame() {
         return arr;
     })();
 
-    const game = createGame(player1, player2, gameboard);
+    const game = createGame(player1, player2, gameboard, player1);
 
     while (game.finished === false) {
-        let currentPlayer = player2;
-        if (currentPlayer === player1) {
-            currentPlayer = player2;
-        } else if (currentPlayer === player2) {
-            currentPlayer = player1;
-        };
-
-        game.newTurn(currentPlayer);
+        console.log(`Turn ${game.getTurnNum()}:`);
+        game.newTurn();
     }
 };
 
-startGame();
+const playBTN = document.querySelector('.play');
+
+playBTN.addEventListener('click', () => startGame());
